@@ -1,41 +1,160 @@
 <html>
 <head>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i,800&display=swap" rel="stylesheet">
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script type="text/javascript">
-    google.charts.load('current', {
-      'packages':['geochart'],
-        // Note: you will need to get a mapsApiKey for your project.
-        // See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
-        'mapsApiKey': 'AIzaSyAh72Nt1guo_QF4uBbjq-bDFQ0ORMaJlV4'
-      });
-    google.charts.setOnLoadCallback(drawRegionsMap);
-
-    function drawRegionsMap() {
-      var data = google.visualization.arrayToDataTable([
-        ['City', 'Infected'],
-        ['Kerala', 17],
-        ['Punjab', 1],
-        ['Delhi', 6],
-        ['Ladakh', 3],
-        ['Rajasthan', 3],
-        ['Uttar Pradesh', 11],
-        ['Karnataka', 5],
-        ['Tamil Nadu', 1],
-        ['Telengana', 1],
-        ['Maharashtra', 11],
-        ['Haryana', 14],
-        ]);
-
-
-      var options = {region: 'IN',resolution: 'provinces',    };
-
-      var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
-
-      chart.draw(data, options);
-    }
-  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <link href="/style.css" rel="stylesheet">
+  
 </head>
 <body>
-  <div id="regions_div" style="width: 900px; height: 500px;"></div>
+  <header class="embed-hide">
+    <h1>India COVID-19 Coronavirus Tracker</h1>
+    <section id="kpi">
+      <div id="kpi-confirmed">
+        <!-- <div class="diff">( +19 )</div> -->
+        <div class="value" id="confvalue">0</div>
+        <div class="label" >Confirmed</div>
+      </div>
+      <div id="kpi-deceased">
+        <!-- <div class="diff">( +2 )</div> -->
+        <div class="value" id="deathsvalue">0</div>
+        <div class="label">Deaths</div>
+      </div>
+      
+      <div id="kpi-recovered">
+        <!-- <div class="diff">( +0 )</div> -->
+        <div class="value" id="recoveredvalue">0</div>
+        <div class="label" >Recovered</div>
+      </div>
+      <div id="kpi-active" data-tippy-content="Tooltip">
+        <!-- <div class="diff">( +17 )</div> -->
+        <div class="value" id="states-value">0</div>
+        <div class="label">States Infected</div>
+      </div>
+      
+    </div>
+    
+  </section>
+  <div id="regions_div"></div>
+  <section class="embed-hide">
+    <h4>State-wise Data</h4>
+    <table id="prefectures-table">
+      <!-- <thead>
+        <tr>
+          <th>State</th>
+          <th>Cases</th>
+          <th>Recovered</th>
+          <th>Deaths</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Kerala</td>
+          <td>142</td>
+          <td></td>  
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>Delhi</td>
+          <td>114</td>
+          <td></td>
+          <td>10</td>
+        </tr>
+        <tr><td>Tamil Nadu</td><td>92</td><td></td><td></td></tr>
+        <tr class="totals"><td>Total</td><td>738</td><td>118</td><td>21</td></tr>
+      </tbody> -->
+    </table>
+  </section>
+</header>
 </body>
-</html>
+
+<script type="text/javascript">
+  
+  // var res; 
+  
+  var alldata = [];
+  
+  
+  google.charts.load('current', {
+    'packages':['geochart'],
+    // Note: you will need to get a mapsApiKey for your project.
+    // See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
+    'mapsApiKey': 'AIzaSyAh72Nt1guo_QF4uBbjq-bDFQ0ORMaJlV4'
+  });
+  google.charts.setOnLoadCallback(drawRegionsMap);
+  
+  function drawRegionsMap() {
+    var newjson = [];
+    
+    $.getJSON("https://spreadsheets.google.com/feeds/cells/1nzXUdaIWC84QipdVGUKTiCSc5xntBbpMpzLm6Si33zk/2/public/values?alt=json", 
+    function(result){
+      entries = result["feed"]["entry"]
+      entries.forEach(function(item){
+        if (newjson[(item["gs$cell"]["row"]-1)] == null){
+          newjson[(item["gs$cell"]["row"]-1)] = [];
+          alldata[(item["gs$cell"]["row"]-1)] = [];
+        }
+        if (parseInt(item["gs$cell"]["col"]-1)<2){
+          if(!isNaN(item["gs$cell"]["$t"])){
+            newjson[(item["gs$cell"]["row"]-1)][(item["gs$cell"]["col"]-1)] = parseInt(item["gs$cell"]["$t"]);
+          }else{
+            newjson[(item["gs$cell"]["row"]-1)][(item["gs$cell"]["col"]-1)] =   (item["gs$cell"]["$t"]);
+          }
+        }
+        alldata[(item["gs$cell"]["row"]-1)][(item["gs$cell"]["col"]-1)] =   (item["gs$cell"]["$t"]);
+      });
+      // alldata = newjson;
+      newjson.splice(1,1);
+      console.log(newjson);
+      console.log(alldata);
+      var numStatesInfected = -1;
+
+      var tablehtml = "<thead>";
+        for(var i=0; i<alldata.length; i++){
+          if(i==0){
+            tablehtml+="<tr>";
+              alldata[i].forEach(function(data){
+                tablehtml+="<th>"+data+"</th>";
+              });
+              tablehtml+="</tr></thead><tbody>";
+              }else{
+                tempdata = Array.from(alldata[i]);
+                tempdata.splice(0,1);
+                allzero = true;
+                tempdata.forEach(function(data){
+                  if(data != 0){
+                    allzero = false;
+                  }
+                });
+                if(!allzero){
+                  numStatesInfected++;
+                  tablehtml+="<tr>";
+                    alldata[i].forEach(function(data){
+                      tablehtml+="<td>"+data+"</td>";
+                    });
+                    tablehtml+="</tr>";
+                  }
+                }
+              }
+              tablehtml+="</tbody>";
+              alldata.forEach(function(item){
+                tablehtml+=item[0];
+              });
+              console.log(numStatesInfected);
+              $("table#prefectures-table").html(tablehtml);
+              $("div#states-value").html(numStatesInfected);
+              $("div#confvalue").html(alldata[1][1]);
+              $("div#deathsvalue").html(alldata[1][3]);
+              $("div#recoveredvalue").html(alldata[1][2]);
+
+              var data = google.visualization.arrayToDataTable(newjson);
+              var options = {region: 'IN',resolution: 'provinces', domain: 'IN', colorAxis: {colors: ['white', 'red']} };
+              var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
+              chart.draw(data, options);
+              
+            });
+            
+          }
+        </script>
+        </html>
+        
