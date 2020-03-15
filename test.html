@@ -10,15 +10,15 @@
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <link href="style.css" rel="stylesheet">
-
-
+  
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
   
   <style>#map { width: 100%; height: 450px; }
     .info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
     .legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
-    </style>
+  </style>
   
   <link rel="icon" type="image/png" href="favicon.png" />
   <meta name="description" content="Live updates of the Coronavirus COVID-19 outbreak in India" />
@@ -70,7 +70,7 @@
   </section>
   
   <div id='map'></div>
-
+  
   <section class="embed-hide">
     <h4>State-wise Data</h4>
     <table id="prefectures-table">
@@ -79,11 +79,13 @@
 </header>
 </body>
 
-<script type="text/javascript" src="/leaflet/india.js"></script>
+<script type="text/javascript" src="india.js"></script>
 <script type="text/javascript">
   // var res; 
   
   var alldata = [];
+  var statewise = {};
+  var maxConfirmed = 0;
   
   
   var newjson = [];
@@ -107,6 +109,10 @@
     });
     // alldata = newjson;
     newjson.splice(1, 1);
+    maxConfirmed = alldata[2][1];
+    alldata.forEach(function(data){
+      statewise[data[0]] = data;
+    });
     // console.log(newjson);
     // console.log(alldata);
     var numStatesInfected = -1;
@@ -159,15 +165,19 @@
               $("div#deathsvalue").html(alldata[1][3]);
               $("div#recoveredvalue").html(alldata[1][2]);
               
-              
+              initMapStuff();
               
             });
             
+            function initMapStuff(){
+              
+              var map = L.map('map').setView([22.5, 82], 4);
+              map.setMaxBounds(map.getBounds());
+              console.log(map.getBounds());
+              map.dragging.disable();
 
-            var map = L.map('map').setView([22.5, 82], 4);
-            // map.setMaxBounds(map.getBounds());
             
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+              L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
                 maxZoom: 6,
                 minZoom: 4,
                 // attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
@@ -176,99 +186,94 @@
                 id: 'mapbox/light-v9',
                 tileSize: 512,
                 zoomOffset: -1
-            }).addTo(map);
-            
-            
-            // control that shows state info on hover
-            var info = L.control();
-            
-            info.onAdd = function (map) {
+              }).addTo(map);
+              
+              
+              // control that shows state info on hover
+              var info = L.control();
+              
+              info.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'info');
                 this.update();
                 return this._div;
-            };
-            var yol = 0
-            info.update = function (props) {
+              };
+              
+              info.update = function (props) {
                 if(props){
-                // console.log(props);
-                this._div.innerHTML = '<h4>Confirmed cases</h4>' + props["NAME_1"];
+                  // console.log(props);
+                  this._div.innerHTML = '<h4>Confirmed cases</h4>' + props["NAME_1"] + ": "+statewise[props["NAME_1"]][1];
                 }
-                yol++;
-            };
-            
-            info.addTo(map);
-            
-            
-            // get color depending on population density value
-            function getColor(d) {
-                return d > 1000 ? '#800026' :
-                d > 500  ? '#BD0026' :
-                d > 200  ? '#E31A1C' :
-                d > 100  ? '#FC4E2A' :
-                d > 50   ? '#FD8D3C' :
-                d > 20   ? '#FEB24C' :
-                d > 10   ? '#FED976' :
-                '#FFEDA0';
-            }
-            
-            function style(feature) {
-                console.log(feature.properties);
+                
+              };
+              
+              info.addTo(map);
+              
+              function style(feature) {
+                // console.log(feature.properties["NAME_1"]);
+                // console.log(statewise[feature.properties["NAME_1"]]);
+                var n = 0
+                if(statewise[feature.properties["NAME_1"]]){
+                  // console.log(statewise[feature.properties["NAME_1"]][1]);
+                  n = statewise[feature.properties["NAME_1"]][1];
+                }
+                
                 return {
-                    weight: 2,
-                    opacity: 1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 0.1,
-                    fillColor: "#FF0000"
-                    // fillColor: getColor(feature.properties)
+                  weight: 0,
+                  opacity: 1,
+                  color: 'white',
+                  dashArray: '3',
+                  fillOpacity: n/maxConfirmed,
+                  // fillColor: "#000000"
+                  fillColor: "red"
                 };
-            }
-            
-            function highlightFeature(e) {
+              }
+              
+              function highlightFeature(e) {
                 geojson.resetStyle();
                 info.update();
-
+                
                 var layer = e.target;
                 
                 layer.setStyle({
-                    weight: 2,
-                    color: '#666',
-                    dashArray: '',
-                    fillOpacity: 0.7
+                  weight: 1,
+                  color: '#000000',
+                  dashArray: '',
+                  // fillOpacity: 0.7
                 });
                 
                 if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                    layer.bringToFront();
+                  layer.bringToFront();
                 }
                 
                 info.update(layer.feature.properties);
-            }
-            
-            var geojson;
-            
-            function resetHighlight(e) {
+              }
+              
+              var geojson;
+              
+              function resetHighlight(e) {
                 geojson.resetStyle(e.target);
                 info.update();
-            }
-            
-            function zoomToFeature(e) {
+              }
+              
+              function zoomToFeature(e) {
                 map.fitBounds(e.target.getBounds());
-            }
-            
-            function onEachFeature(feature, layer) {
+              }
+              
+              function onEachFeature(feature, layer) {
                 layer.on({
-                    mouseover: highlightFeature,
-                    mouseout: resetHighlight,
-                    click: highlightFeature
+                  mouseover: highlightFeature,
+                  mouseout: resetHighlight,
+                  click: highlightFeature
                 });
-            }
-            
-            geojson = L.geoJson(statesData, {
+              }
+              
+              geojson = L.geoJson(statesData, {
                 style: style,
                 onEachFeature: onEachFeature
-            }).addTo(map);
+              }).addTo(map);
+            }
             
           </script>
-           
+          
           
           </html>
