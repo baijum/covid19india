@@ -42,6 +42,11 @@
         View our <a href="https://docs.google.com/spreadsheets/d/1nzXUdaIWC84QipdVGUKTiCSc5xntBbpMpzLm6Si33zk" target="_blank">live patient database</a>
       </em>
     </div>
+    <div>
+      <em>
+        <span >Last Updated:</span> <strong id="last-updated"></strong>
+      </em>
+    </div>
     <section id="kpi">
       <div id="kpi-confirmed">
         <!-- <div class="diff">( +19 )</div> -->
@@ -76,6 +81,40 @@
     <table id="prefectures-table">
     </table>
   </section>
+
+  <section id="helpful-links" class="embed-hide">
+    <a name="links"></a>
+    <h4>Helpful Links</h4>
+    <ul>
+      <li>
+        INDIA HELPLINE (by State)<br>
+        <a href="https://www.mohfw.gov.in/coronvavirushelplinenumber.pdf">https://www.mohfw.gov.in/coronvavirushelplinenumber.pdf</a>
+      </li>
+    </ul>
+  
+    <br>
+    <h4>KEY INFORMATION AND RESOURCES</h4>
+    <ul>
+      <li>
+        Ministry of Health and Family Welfare, Gov. of India<br>
+        <a href="https://www.mohfw.gov.in/">https://www.mohfw.gov.in/</a>
+      </a></li>
+      <li>
+        WHO : COVID-19 Home Page<br>
+        <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019">https://www.who.int/emergencies/diseases/novel-coronavirus-2019</a>
+      </a></li>
+      <li>
+        CDC<br>
+        <a href="https://www.cdc.gov/coronavirus/2019-ncov/faq.html">https://www.cdc.gov/coronavirus/2019-ncov/faq.html</a>
+      </a></li>
+      <li>
+        COVID-19 Global Tracker<br>
+        <a href="https://coronavirus.thebaselab.com/">https://coronavirus.thebaselab.com/</a>
+      </a></li>
+    </ul>
+  </section>
+
+
 </header>
 </body>
 
@@ -86,6 +125,7 @@
   var alldata = [];
   var statewise = {};
   var maxConfirmed = 0;
+  var lastUpdated = "";
   
   
   var newjson = [];
@@ -110,6 +150,9 @@
     // alldata = newjson;
     newjson.splice(1, 1);
     maxConfirmed = alldata[2][1];
+    lastUpdated = alldata[1][5];
+    alldata[1].splice(5,1);
+    alldata[0].splice(5,1);
     alldata.forEach(function(data){
       statewise[data[0]] = data;
     });
@@ -164,6 +207,7 @@
               $("div#confvalue").html(alldata[1][1]);
               $("div#deathsvalue").html(alldata[1][3]);
               $("div#recoveredvalue").html(alldata[1][2]);
+              $("strong#last-updated").html(lastUpdated);
               
               initMapStuff();
               
