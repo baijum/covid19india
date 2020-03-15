@@ -173,10 +173,10 @@
               
               var map = L.map('map').setView([22.5, 82], 4);
               map.setMaxBounds(map.getBounds());
-              console.log(map.getBounds());
+              // console.log(map.getBounds());
               map.dragging.disable();
-
-            
+              
+              
               L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
                 maxZoom: 6,
                 minZoom: 4,
@@ -273,6 +273,16 @@
               }).addTo(map);
             }
             
+          </script>
+          
+          <!-- Global site tag (gtag.js) - Google Analytics -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id=UA-160698988-1"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            
+            gtag('config', 'UA-160698988-1');
           </script>
           
           
